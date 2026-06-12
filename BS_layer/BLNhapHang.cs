@@ -94,6 +94,12 @@ namespace Supermarket.BS_layer
                 int id = int.Parse(maPhieu);
                 var order = db.ImportOrders.FirstOrDefault(o => o.OrderId == id && o.Status == "New");
 
+                if (order == null)
+                {
+                    err = "Không tìm thấy phiếu nhập hoặc trạng thái không hợp lệ.";
+                    return false;
+                }
+
                 if (order != null)
                 {
                     order.ImportPrice = decimal.Parse(gia);
@@ -120,6 +126,12 @@ namespace Supermarket.BS_layer
                 int id = int.Parse(maPhieu);
                 var order = db.ImportOrders.FirstOrDefault(o => o.OrderId == id && o.Status == "New");
 
+                if (order == null)
+                {
+                    err = "Không tìm thấy phiếu nhập hoặc trạng thái không hợp lệ.";
+                    return false;
+                }
+
                 if (order != null)
                 {
                     db.ImportOrders.Remove(order);
@@ -144,6 +156,12 @@ namespace Supermarket.BS_layer
             {
                 int id = int.Parse(maPhieu);
                 var order = db.ImportOrders.FirstOrDefault(o => o.OrderId == id && o.Status == "New");
+
+                if (order == null)
+                {
+                    err = "Không tìm thấy phiếu nhập hoặc trạng thái không hợp lệ.";
+                    return false;
+                }
 
                 if (order != null)
                 {

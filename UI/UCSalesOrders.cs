@@ -47,8 +47,8 @@ namespace Supermarket
 
             // 4) Events
             dgvInvoices.CellClick += dgvInvoices_CellClick;
-            txtInvoicePrice.TextChanged += (s, e) => UpdateInvoiceTotal();
-            nudInvoiceQty.ValueChanged += (s, e) => UpdateInvoiceTotal();
+            txtInvoicePrice.TextChanged += InvoiceInputChanged;
+            nudInvoiceQty.ValueChanged += InvoiceInputChanged;
         }
 
         private void InitInvoiceGrid()
@@ -119,19 +119,6 @@ namespace Supermarket
                 dgvInvoices.Columns["Status"].DisplayIndex + 1;
 
 
-            dgvInvoices.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "ProductId",
-                DataPropertyName = "ProductId",
-                Visible = false
-            });
-            dgvInvoices.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "SupplierId",
-                DataPropertyName = "SupplierId",
-                Visible = false
-            });
-
         }
 
         private void LoadInvoiceCombos()
@@ -171,6 +158,8 @@ namespace Supermarket
             cmbInvoiceProduct.SelectedIndex = -1;
             cmbInvoiceCategory.SelectedIndex = -1;
             txtInvoicePrice.Clear();
+            nudInvoiceQty.Minimum = 1;
+            nudInvoiceQty.Maximum = 10000;
             nudInvoiceQty.Value = 1;
             lblInvoiceTotal.Text = "0";
 
@@ -191,30 +180,40 @@ namespace Supermarket
                 lblInvoiceTotal.Text = "0";
         }
 
+        private void InvoiceInputChanged(object sender, EventArgs e)
+        {
+            UpdateInvoiceTotal();
+        }
+
         private void dgvInvoices_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             // Nếu click vào header hoặc ngoài hàng dữ liệu thì bỏ qua
             if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
 
-            // DataBoundItem của ô đó phải là DataRowView
-            var drv = dgvInvoices.Rows[e.RowIndex].DataBoundItem as DataRowView;
-            if (drv == null) return;
+            var invoice = dgvInvoices.Rows[e.RowIndex].DataBoundItem as SalesOrderDTO;
+            if (invoice == null) return;
 
             // Lấy ID và bind lên form
-            _currentSOId = (int)drv["OrderId"];
-            int prodId = (int)drv["ProductId"];
+            _currentSOId = invoice.OrderId;
+            int prodId = invoice.ProductId;
 
             cmbInvoiceProduct.SelectedValue = prodId;
-            txtInvoicePrice.Text = drv["SellPrice"].ToString();
-            nudInvoiceQty.Value = Convert.ToDecimal(drv["Quantity"]);
-            lblInvoiceTotal.Text = drv["TotalAmount"].ToString();
+            txtInvoicePrice.Text = invoice.SellPrice.ToString();
+            int quantity = invoice.Quantity;
+            if (quantity < nudInvoiceQty.Minimum)
+                quantity = (int)nudInvoiceQty.Minimum;
+            if (quantity > nudInvoiceQty.Maximum)
+                quantity = (int)nudInvoiceQty.Maximum;
+            nudInvoiceQty.Value = quantity;
+            lblInvoiceTotal.Text = (invoice.TotalAmount ?? 0).ToString("N0");
 
             // Bật/tắt nút phù hợp
+            bool canModify = invoice.Status == "New";
             btnInvoiceCreate.Enabled = true;
             btnInvoiceSave.Enabled = false;
-            btnInvoiceEdit.Enabled = true;
-            btnInvoiceDelete.Enabled = true;
-            btnInvoiceIssue.Enabled = (drv["Status"].ToString() == "New");
+            btnInvoiceEdit.Enabled = canModify;
+            btnInvoiceDelete.Enabled = canModify;
+            btnInvoiceIssue.Enabled = canModify;
         }
 
 
@@ -272,7 +271,7 @@ namespace Supermarket
             int reqQty = (int)nudInvoiceQty.Value;
             int inStock = _prodBus.GetQuantity(prodId);
 
-            if (_isAdding && reqQty > inStock)
+            if (reqQty > inStock)
             {
                 MessageBox.Show(
                   $"Không thể tạo hóa đơn.\nTồn kho thực tế chỉ còn {inStock} sản phẩm.",
@@ -304,10 +303,7 @@ namespace Supermarket
 
         private void btnInvoiceIssue_Click(object sender, EventArgs e)
         {
-            if (dgvInvoices.CurrentRow == null) return;
-
-            // Lấy OrderId
-            int id = (int)dgvInvoices.CurrentRow.Cells["OrderId"].Value;
+            if (!_currentSOId.HasValue) return;
 
             // 1) Hiện dialog chọn ngày
             if (!ShowIssueDateDialog(out var ngayXuat))
@@ -315,7 +311,7 @@ namespace Supermarket
 
             // 2) Gọi BLL
             string err = "";
-            if (_soBus.XuatHoaDon(id, ngayXuat, ref err))
+            if (_soBus.XuatHoaDon(_currentSOId.Value, ngayXuat, ref err))
             {
                 MessageBox.Show("Xuất hóa đơn thành công.",
                     "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);

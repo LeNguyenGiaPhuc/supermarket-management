@@ -15,7 +15,6 @@ namespace Supermarket
     public partial class UCSupplier : UserControl
     {
         private readonly BLSupplier _bus = new BLSupplier();
-        private DataTable _dt;
         private int? _currentId;
         private bool _isAdding;
         private string _err;
@@ -154,8 +153,30 @@ namespace Supermarket
 
         private void btnSearch_Click(object sender, EventArgs e)
         {
-            var kw = txtSupplierName.Text.Replace("'", "''");
-            _dt.DefaultView.RowFilter = $"SupplierName LIKE '%{kw}%'";
+            var keyword = txtSupplierName.Text.Trim();
+            var suppliers = _bus.LayNhaCungCap();
+            var result = new List<SupplierDTO>();
+
+            foreach (var supplier in suppliers)
+            {
+                if (string.IsNullOrWhiteSpace(keyword))
+                {
+                    result.Add(supplier);
+                    continue;
+                }
+
+                string supplierName = (supplier.SupplierName ?? "").ToLower();
+                if (supplierName.Contains(keyword.ToLower()))
+                    result.Add(supplier);
+            }
+
+            dgvSuppliers.DataSource = result;
+            dgvSuppliers.ClearSelection();
+            _currentId = null;
+            btnAdd.Enabled = true;
+            btnSave.Enabled = false;
+            btnEdit.Enabled = false;
+            btnDelete.Enabled = false;
         }
 
         private void btnReload_Click(object sender, EventArgs e)

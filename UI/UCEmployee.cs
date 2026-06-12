@@ -15,7 +15,6 @@ namespace Supermarket
     public partial class UCEmployee : UserControl
     {
         private readonly BLNhanVien _bus = new BLNhanVien();
-        private DataTable _dt;
         private int? _currentId;
         private bool _isAdding;
         private string _err;
@@ -211,22 +210,46 @@ namespace Supermarket
 
         private void btnSearch_Click(object sender, EventArgs e)
         {
-            var filters = new List<string>();
+            var employees = _bus.LayNhanVien();
+            var result = new List<EmployeeDTO>();
 
-            var name = txtName.Text.Trim().Replace("'", "''");
-            if (!string.IsNullOrEmpty(name))
-                filters.Add($"FullName LIKE '%{name}%'");
+            string name = txtName.Text.Trim().ToLower();
+            string phone = txtPhone.Text.Trim().ToLower();
+            bool useHireDate = chkUseHireDate.Checked;
+            DateTime hireDate = dtpHireDate.Value.Date;
 
-            var phone = txtPhone.Text.Trim().Replace("'", "''");
-            if (!string.IsNullOrEmpty(phone))
-                filters.Add($"Phone LIKE '%{phone}%'");
-
-            if (chkUseHireDate.Checked)
+            foreach (var employee in employees)
             {
-                var dt = dtpHireDate.Value.Date;
-                filters.Add($"HireDate = '#{dt:MM/dd/yyyy}#'");
+                bool matched = true;
+
+                if (!string.IsNullOrEmpty(name))
+                {
+                    string employeeName = (employee.FullName ?? "").ToLower();
+                    if (!employeeName.Contains(name))
+                        matched = false;
+                }
+
+                if (!string.IsNullOrEmpty(phone))
+                {
+                    string employeePhone = (employee.Phone ?? "").ToLower();
+                    if (!employeePhone.Contains(phone))
+                        matched = false;
+                }
+
+                if (useHireDate && employee.HireDate.Date != hireDate)
+                    matched = false;
+
+                if (matched)
+                    result.Add(employee);
             }
-            _dt.DefaultView.RowFilter = string.Join(" AND ", filters);
+
+            dgvNV.DataSource = result;
+            dgvNV.ClearSelection();
+            _currentId = null;
+            btnAdd.Enabled = true;
+            btnSave.Enabled = false;
+            btnEdit.Enabled = false;
+            btnDelete.Enabled = false;
         }
 
         private void btnClear_Click(object sender, EventArgs e)

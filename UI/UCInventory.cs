@@ -17,7 +17,6 @@ namespace Supermarket
         private BLSanPham dbSP = new BLSanPham();
         private BLCategory catBus = new BLCategory();
         private BLSupplier supBus = new BLSupplier();
-        private DataTable dtSP;
         private bool isAdding;
         private string err;
 
@@ -107,28 +106,57 @@ namespace Supermarket
 
         private void btnSearch_Click(object sender, EventArgs e)
         {
-            var filters = new List<string>();
-            if (!string.IsNullOrWhiteSpace(txtTenSP.Text))
-            {
-                var t = txtTenSP.Text.Replace("'", "''");
-                filters.Add($"ProductName LIKE '%{t}%'");
-            }
-            if (cmbCategory.SelectedIndex >= 0)
-            {
-                var cat = cmbCategory.Text.Replace("'", "''");
-                filters.Add($"CategoryName = '{cat}'");
-            }
-            if (cmbSupplier.SelectedIndex >= 0)
-            {
-                var sup = cmbSupplier.Text.Replace("'", "''");
-                filters.Add($"SupplierName = '{sup}'");
-            }
+            var products = dbSP.LaySanPham().ToList();
+            var result = new List<ProductDTO>();
+
+            string keyword = txtTenSP.Text.Trim().ToLower();
+            int? categoryId = null;
+            int? supplierId = null;
+            DateTime? expiryDate = null;
+
+            if (cmbCategory.SelectedIndex >= 0 && cmbCategory.SelectedValue != null)
+                categoryId = Convert.ToInt32(cmbCategory.SelectedValue);
+
+            if (cmbSupplier.SelectedIndex >= 0 && cmbSupplier.SelectedValue != null)
+                supplierId = Convert.ToInt32(cmbSupplier.SelectedValue);
+
             if (chkUseExpiry.Checked)
+                expiryDate = dtpExpiry.Value.Date;
+
+            foreach (var product in products)
             {
-                var dt = dtpExpiry.Value.Date;
-                filters.Add($"ExpiryDate = #{dt:MM/dd/yyyy}#");
+                bool matched = true;
+
+                if (!string.IsNullOrEmpty(keyword))
+                {
+                    string productName = (product.ProductName ?? "").ToLower();
+                    if (!productName.Contains(keyword))
+                        matched = false;
+                }
+
+                if (categoryId.HasValue && product.CategoryId != categoryId.Value)
+                    matched = false;
+
+                if (supplierId.HasValue && product.SupplierId != supplierId.Value)
+                    matched = false;
+
+                if (expiryDate.HasValue)
+                {
+                    if (!product.ExpiryDate.HasValue || product.ExpiryDate.Value.Date != expiryDate.Value)
+                        matched = false;
+                }
+
+                if (matched)
+                    result.Add(product);
             }
-            dtSP.DefaultView.RowFilter = string.Join(" AND ", filters);
+
+            dgvSP.DataSource = result;
+
+            if (dgvSP.Columns.Contains("CategoryId"))
+                dgvSP.Columns["CategoryId"].Visible = false;
+
+            if (dgvSP.Columns.Contains("SupplierId"))
+                dgvSP.Columns["SupplierId"].Visible = false;
         }
 
 
@@ -237,13 +265,13 @@ namespace Supermarket
             cmbCategory.SelectedValue = (int)row.Cells["CategoryId"].Value;
             cmbSupplier.Enabled = true;
             var supVal = row.Cells["SupplierId"].Value;
-            if (supVal != DBNull.Value)
-                cmbSupplier.SelectedValue = (int)supVal;
+            if (supVal != null && supVal != DBNull.Value)
+                cmbSupplier.SelectedValue = Convert.ToInt32(supVal);
             else
                 cmbSupplier.SelectedIndex = -1;
 
             var expVal = row.Cells["ExpiryDate"].Value;
-            dtpExpiry.Value = expVal != DBNull.Value
+            dtpExpiry.Value = expVal != null && expVal != DBNull.Value
                 ? (DateTime)expVal
                 : DateTime.Today;
 

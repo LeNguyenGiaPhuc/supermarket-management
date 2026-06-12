@@ -28,6 +28,9 @@ namespace Supermarket
         public UCNhapHang()
         {
             InitializeComponent();
+            nudQuantity.Minimum = 1;
+            nudQuantity.Maximum = 10000;
+
             // 1) Khởi instance BUS
             _ioBus = new BLNhapHang();
             _catBus = new BLCategory();
@@ -171,14 +174,20 @@ namespace Supermarket
 
             // Phần còn lại
             txtPrice.Text = selectedOrder.ImportPrice.ToString();
-            nudQuantity.Value = Convert.ToDecimal(selectedOrder.Quantity);
+            int quantity = selectedOrder.Quantity;
+            if (quantity < nudQuantity.Minimum)
+                quantity = (int)nudQuantity.Minimum;
+            if (quantity > nudQuantity.Maximum)
+                quantity = (int)nudQuantity.Maximum;
+            nudQuantity.Value = quantity;
 
             // nút
+            bool canModify = selectedOrder.Status == "New";
             btnCreate.Enabled = true;
             btnSave.Enabled = false;
-            btnEdit.Enabled = true;
-            btnDelete.Enabled = true;
-            btnIssue.Enabled = selectedOrder.Status == "New";
+            btnEdit.Enabled = canModify;
+            btnDelete.Enabled = canModify;
+            btnIssue.Enabled = canModify;
         }
 
 
