@@ -22,7 +22,7 @@ A Windows Forms desktop application for managing supermarket operations. The pro
 - Stock quantity validation
 - Soft delete for products, suppliers, and employees
 - Monthly cost and profit report
-- SQL Server database scripts with sample data
+- SQL Server database script with sample data
 
 ## Project Structure
 
@@ -30,7 +30,7 @@ A Windows Forms desktop application for managing supermarket operations. The pro
 BS_layer/       Business logic classes
 DB_layer/       Entity Framework database model
 UI/             WinForms user controls
-database/       SQL scripts for creating and seeding the database
+database/       SQL script for creating the database
 App.config      Database connection configuration
 ```
 
@@ -52,13 +52,7 @@ To create the database:
 database/create_supermarket_db.sql
 ```
 
-4. To add more sample data, run:
-
-```text
-database/seed_supermarket_professional_data.sql
-```
-
-The scripts create the `SupermarketDB` database, required tables, relationships, triggers, and sample records.
+The script creates the `SupermarketDB` database, required tables, relationships, triggers, and sample records.
 
 ## Demo Accounts
 
@@ -88,7 +82,7 @@ Replace `localhost\SQLEXPRESS` with your SQL Server instance name.
 1. Open `Supermarket.sln` in Visual Studio.
 2. Restore NuGet packages if required.
 3. Make sure SQL Server is running.
-4. Run the database scripts.
+4. Run the database script.
 5. Build and run the project.
 
 ## Notes
