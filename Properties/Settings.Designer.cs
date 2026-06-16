@@ -26,7 +26,7 @@ namespace Supermarket.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=YOUNGNINJA;Initial Catalog=SupermarketDB;Integrated Security=True;Enc" +
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=localhost\\SQLEXPRESS;Initial Catalog=SupermarketDB;Integrated Security=True;Enc" +
             "rypt=True;TrustServerCertificate=True")]
         public string SupermarketDBConnectionString {
             get {
@@ -37,7 +37,7 @@ namespace Supermarket.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=LAPTOP-B4GR4OKS;Initial Catalog=SupermarketDB;Integrated Security=Tru" +
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=localhost\\SQLEXPRESS;Initial Catalog=SupermarketDB;Integrated Security=Tru" +
             "e;TrustServerCertificate=True")]
         public string SupermarketDBConnectionString1 {
             get {
